@@ -1,0 +1,29 @@
+@import 'tailwindcss';
+
+@theme {
+  --color-ink: #0b0b0b;
+  --color-ink-2: #151515;
+  --color-gold: #d4af37;
+  --color-gold-dark: #a8821a;
+  --color-cream: #faf6e8;
+  --color-cream-border: #eadfb5;
+
+  --font-sans: 'Manrope', ui-sans-serif, system-ui, sans-serif;
+  --font-serif: 'Cormorant Garamond', ui-serif, Georgia, serif;
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  margin: 0;
+}
+
+a {
+  text-decoration: none;
+}
+
+a.btn:hover {
+  opacity: 0.88;
+}
