@@ -1,0 +1,14 @@
+{
+  "name": "biroumroh",
+  "image": "mcr.microsoft.com/devcontainers/javascript-node:20",
+  "forwardPorts": [3000, 5173],
+  "portsAttributes": {
+    "3000": { "label": "backend", "visibility": "private" },
+    "5173": { "label": "frontend", "visibility": "private" }
+  },
+  "customizations": {
+    "vscode": {
+      "extensions": ["dbaeumer.vscode-eslint"]
+    }
+  }
+}
