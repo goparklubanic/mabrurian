@@ -1,9 +1,9 @@
-tunnel: <TUNNEL_ID>
-credentials-file: /root/.cloudflared/<TUNNEL_ID>.json
+tunnel: 00b8322d-203b-41e3-9fa9-b6c76997b7d7
+credentials-file: .cloudflared/00b8322d-203b-41e3-9fa9-b6c76997b7d7.json
 
 ingress:
-  - hostname: api.<domain>.com
+  - hostname: umrep.numedia.biz.id
     service: http://localhost:3000
-  - hostname: app.<domain>.com
+  - hostname: umroh.numedia.biz.id
     service: http://localhost:5173
   - service: http_status:404
