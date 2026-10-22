@@ -9,6 +9,9 @@
     "dev": "node --watch server.js",
     "init-db": "node init-db.js"
   },
+  "engines": {
+    "node": ">=24"
+  },
   "dependencies": {
     "cors": "^2.8.5",
     "dotenv": "^16.4.5",
