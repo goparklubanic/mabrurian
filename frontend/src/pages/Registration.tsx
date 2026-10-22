@@ -1,7 +1,6 @@
 import { useEffect, useState } from 'react'
 import { useNavigate, Link } from 'react-router-dom'
-
-const API_BASE = import.meta.env.VITE_API_BASE ?? 'http://localhost:3000'
+import { hmacFetch } from '../lib/hmac'
 
 type Trip = {
   id: string
@@ -43,11 +42,11 @@ export default function Registration() {
   const [rombongans, setRombongans] = useState<Rombongan[]>([])
 
   useEffect(() => {
-    fetch(`${API_BASE}/trip/list`)
+    hmacFetch('GET', '/trip/list')
       .then((res) => res.json())
       .then((rows: Trip[]) => setTrips(rows.filter((t) => t.status === 'waiting' && t.deleted === 0)))
       .catch(() => setError('Gagal memuat jadwal perjalanan'))
-    fetch(`${API_BASE}/jamaah/list`)
+    hmacFetch('GET', '/jamaah/list')
       .then((res) => res.json())
       .then((rows: Jamaah[]) => setJamaahs(rows.filter((j) => j.deleted === 0)))
       .catch(() => setError('Gagal memuat daftar jamaah'))
@@ -58,7 +57,7 @@ export default function Registration() {
       setRombongans([])
       return
     }
-    fetch(`${API_BASE}/registration/list?trip_id=${selectedTrip.id}`)
+    hmacFetch('GET', `/registration/list?trip_id=${selectedTrip.id}`)
       .then((res) => res.json())
       .then((rows: Rombongan[]) => setRombongans(rows))
       .catch(() => setError('Gagal memuat data rombongan'))
@@ -74,13 +73,9 @@ export default function Registration() {
   async function handleSetPaid(nomorPendaftaran: string, registrationId: string) {
     if (!confirm('Setel status pembayaran ke lunas?')) return
     try {
-      await fetch(`${API_BASE}/registration/paid/${nomorPendaftaran}`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ registration_id: registrationId }),
-      })
+      await hmacFetch('POST', `/registration/paid/${nomorPendaftaran}`, { registration_id: registrationId })
       if (selectedTrip) {
-        fetch(`${API_BASE}/registration/list?trip_id=${selectedTrip.id}`)
+        hmacFetch('GET', `/registration/list?trip_id=${selectedTrip.id}`)
           .then((res) => res.json())
           .then((rows: Rombongan[]) => setRombongans(rows))
       }
@@ -97,15 +92,11 @@ export default function Registration() {
       return
     }
     try {
-      const res = await fetch(`${API_BASE}/rombongan/baru`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          trip_id: selectedTrip.id,
-          jamaah_id: selectedJamaah.id,
-          tanggal,
-          payment_status: paymentStatus,
-        }),
+      const res = await hmacFetch('POST', '/rombongan/baru', {
+        trip_id: selectedTrip.id,
+        jamaah_id: selectedJamaah.id,
+        tanggal,
+        payment_status: paymentStatus,
       })
       const result = await res.json()
       navigate(`/registration/invoice/${result.id}`)
@@ -113,6 +104,7 @@ export default function Registration() {
       setError('Gagal mendaftarkan rombongan')
     }
   }
+
   return (
     <section className="bg-ink min-h-screen text-white px-6 py-12">
       <div className="mx-auto max-w-[1200px]">
@@ -133,7 +125,6 @@ export default function Registration() {
           </Link>
         </div>
 
-        {/* Sub judul: Jadwal Perjalanan */}
         <div className="mb-8">
           <h2 className="mb-3 text-xl font-bold text-gold">Jadwal Perjalanan</h2>
           <div className="overflow-x-auto">
@@ -151,9 +142,7 @@ export default function Registration() {
                 {trips.map((t) => (
                   <tr
                     key={t.id}
-                    className={`bg-ink-2 border-b border-[#2a2a2a] hover:bg-[#1e1e1e] transition ${
-                      selectedTrip?.id === t.id ? 'ring-2 ring-gold' : ''
-                    }`}
+                    className={`bg-ink-2 border-b border-[#2a2a2a] hover:bg-[#1e1e1e] transition ${selectedTrip?.id === t.id ? 'ring-2 ring-gold' : ''}`}
                   >
                     <td className="p-3">
                       <input
@@ -182,7 +171,6 @@ export default function Registration() {
           </div>
         </div>
 
-        {/* Sub judul: Daftar jamaah (tampilkan setelah input >= 3 karakter) */}
         <div className="mb-8">
           <h2 className="mb-3 text-xl font-bold text-gold">Daftar Jamaah</h2>
           <div className="flex gap-3 mb-4">
@@ -236,7 +224,6 @@ export default function Registration() {
           )}
         </div>
 
-        {/* Sub judul: Rombongan Perjalanan (registrasi sesuai trip yang dipilih) */}
         {selectedTrip && (
           <div className="mb-8">
             <h2 className="mb-3 text-xl font-bold text-gold">
@@ -274,9 +261,7 @@ export default function Registration() {
                             <span className="text-xs text-green-400 font-bold">Lunas</span>
                           ) : (
                             <button
-                              onClick={() =>
-                                handleSetPaid(r.nomor_pendaftaran, r.id)
-                              }
+                              onClick={() => handleSetPaid(r.nomor_pendaftaran, r.id)}
                               className="text-xs underline text-gold hover:text-white"
                             >
                               Set Lunas
@@ -292,7 +277,6 @@ export default function Registration() {
           </div>
         )}
 
-        {/* Sub judul: Pendaftaran (hidden form) */}
         {selectedTrip && selectedJamaah && (
           <form onSubmit={handleSubmit} className="bg-ink-2 border border-[#333] rounded-xl p-6">
             <h2 className="mb-4 text-xl font-bold text-gold">
@@ -347,9 +331,7 @@ export default function Registration() {
                 </label>
                 <select
                   value={paymentStatus}
-                  onChange={(e) =>
-                    setPaymentStatus(e.target.value as 'unpaid' | 'paid')
-                  }
+                  onChange={(e) => setPaymentStatus(e.target.value as 'unpaid' | 'paid')}
                   className="w-full bg-[#0a0a0a] border border-[#333] rounded px-3 py-2 text-white focus:outline-none focus:ring-2 focus:ring-gold"
                 >
                   <option value="unpaid">Unpaid</option>

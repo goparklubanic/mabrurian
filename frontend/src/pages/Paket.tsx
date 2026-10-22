@@ -1,7 +1,6 @@
 import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
-
-const API_BASE = import.meta.env.VITE_API_BASE ?? 'http://localhost:3000'
+import { hmacFetch } from '../lib/hmac'
 
 type Paket = {
   id: string
@@ -33,7 +32,7 @@ export default function Paket() {
 
   async function fetchData() {
     try {
-      const res = await fetch(`${API_BASE}/paket`)
+      const res = await hmacFetch('GET', '/paket')
       const rows: Paket[] = await res.json()
       setData(rows.filter((p) => p.deleted === 0))
     } catch {
@@ -52,17 +51,9 @@ export default function Paket() {
     }
     try {
       if (mode === 'tambah') {
-        await fetch(`${API_BASE}/paket/baru`, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(payload),
-        })
+        await hmacFetch('POST', '/paket/baru', payload)
       } else {
-        await fetch(`${API_BASE}/paket/ubah`, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ ...payload, id: form.id }),
-        })
+        await hmacFetch('POST', '/paket/ubah', { ...payload, id: form.id })
       }
       setOpen(false)
       setForm({ nama: '', tipe: 'umrah', durasi: 14, harga: 0 })
@@ -76,11 +67,7 @@ export default function Paket() {
   async function handleHapus(id: string) {
     if (!confirm('Yakin hapus paket ini?')) return
     try {
-      await fetch(`${API_BASE}/paket/hapus`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ id }),
-      })
+      await hmacFetch('POST', '/paket/hapus', { id })
       await fetchData()
     } catch {
       setError('Gagal menghapus paket')

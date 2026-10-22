@@ -1,7 +1,6 @@
 import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
-
-const API_BASE = import.meta.env.VITE_API_BASE ?? 'http://localhost:3000'
+import { hmacFetch } from '../lib/hmac'
 
 type Jamaah = {
   id: string
@@ -23,7 +22,7 @@ export default function JamaahList() {
 
   async function fetchData() {
     try {
-      const res = await fetch(`${API_BASE}/jamaah/list`)
+      const res = await hmacFetch('GET', '/jamaah/list')
       const rows: Jamaah[] = await res.json()
       setData(rows.filter((j) => j.deleted === 0))
     } catch {
@@ -34,11 +33,7 @@ export default function JamaahList() {
   async function handleHapus(id: string) {
     if (!confirm('Yakin menghapus jamaah ini?')) return
     try {
-      await fetch(`${API_BASE}/jamaah/batal`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ id }),
-      })
+      await hmacFetch('POST', '/jamaah/batal', { id })
       await fetchData()
     } catch {
       setError('Gagal menghapus jamaah')

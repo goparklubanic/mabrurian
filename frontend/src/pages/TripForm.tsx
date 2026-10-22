@@ -1,7 +1,6 @@
 import { useEffect, useState } from 'react'
 import { useNavigate, useParams, Link } from 'react-router-dom'
-
-const API_BASE = import.meta.env.VITE_API_BASE ?? 'http://localhost:3000'
+import { hmacFetch } from '../lib/hmac'
 
 type Trip = {
   id: string
@@ -46,13 +45,13 @@ export default function TripForm() {
   const [loading, setLoading] = useState(false)
 
   useEffect(() => {
-    fetch(`${API_BASE}/paket`)
+    hmacFetch('GET', '/paket')
       .then((res) => res.json())
       .then((rows: Paket[]) => setPakets(rows.filter((p) => p.deleted === 0)))
       .catch(() => setError('Gagal memuat data paket'))
 
     if (!isBaru && uuid) {
-      fetch(`${API_BASE}/trip/list`)
+      hmacFetch('GET', '/trip/list')
         .then((res) => res.json())
         .then((rows: Trip[]) => {
           const t = rows.find((r) => r.id === uuid)
@@ -83,18 +82,10 @@ export default function TripForm() {
         status: form.status,
       }
       if (isBaru) {
-        await fetch(`${API_BASE}/trip/baru`, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(payload),
-        })
+        await hmacFetch('POST', '/trip/baru', payload)
         navigate('/trip')
       } else {
-        await fetch(`${API_BASE}/trip/ganti`, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ ...payload, id: uuid }),
-        })
+        await hmacFetch('POST', '/trip/ganti', { ...payload, id: uuid })
         navigate('/trip')
       }
     } catch {
@@ -121,6 +112,12 @@ export default function TripForm() {
             className="btn rounded-md border border-[#333] px-6 py-3 font-bold text-white"
           >
             Batal
+          </Link>
+          <Link
+            to="/serambi"
+            className="btn rounded-md border border-[#333] px-6 py-3 font-bold text-white"
+          >
+            Serambi
           </Link>
         </div>
 

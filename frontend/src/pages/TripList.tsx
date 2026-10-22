@@ -1,7 +1,6 @@
 import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
-
-const API_BASE = import.meta.env.VITE_API_BASE ?? 'http://localhost:3000'
+import { hmacFetch } from '../lib/hmac'
 
 type Trip = {
   id: string
@@ -24,7 +23,7 @@ export default function TripList() {
 
   async function fetchData() {
     try {
-      const res = await fetch(`${API_BASE}/trip/list`)
+      const res = await hmacFetch('GET', '/trip/list')
       const rows: Trip[] = await res.json()
       setData(rows.filter((t) => t.deleted === 0))
     } catch {
@@ -35,11 +34,7 @@ export default function TripList() {
   async function handleHapus(id: string) {
     if (!confirm('Yakin menghapus jadwal perjalanan ini?')) return
     try {
-      await fetch(`${API_BASE}/trip/batal`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ id }),
-      })
+      await hmacFetch('POST', '/trip/batal', { id })
       await fetchData()
     } catch {
       setError('Gagal menghapus jadwal perjalanan')

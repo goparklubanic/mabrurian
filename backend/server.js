@@ -32,6 +32,43 @@ const get = (sql, params = []) => new Promise((resolve, reject) => {
   });
 });
 
+// ---------- HMAC Signature Middleware ----------
+import crypto from 'crypto';
+
+const HMAC_SECRET = process.env.HMAC_SECRET || '';
+const MAX_AGE_SECONDS = 300;
+
+function verifyHmac(req, res, next) {
+  const timestamp = req.headers['x-hmac-timestamp'];
+  const signature = req.headers['x-hmac-signature'];
+
+  if (!timestamp || !signature) {
+    return res.status(401).json({ error: 'HMAC signature required' });
+  }
+
+  const ts = Number(timestamp);
+  if (isNaN(ts) || Math.abs(Date.now() / 1000 - ts) > MAX_AGE_SECONDS) {
+    return res.status(401).json({ error: 'Invalid or expired timestamp' });
+  }
+
+  const body = req.body && Object.keys(req.body).length > 0 ? JSON.stringify(req.body) : '';
+  const message = `${ts}${req.method}${req.originalUrl}${body}`;
+  const expected = crypto.createHmac('sha256', HMAC_SECRET).update(message).digest('hex');
+
+  if (!crypto.timingSafeEqual(Buffer.from(signature, 'hex'), Buffer.from(expected, 'hex'))) {
+    return res.status(401).json({ error: 'Invalid HMAC signature' });
+  }
+
+  next();
+}
+
+// Apply HMAC to all API routes
+app.use('/paket', verifyHmac);
+app.use('/jamaah', verifyHmac);
+app.use('/trip', verifyHmac);
+app.use('/registration', verifyHmac);
+app.use('/rombongan', verifyHmac);
+
 // ---------- Paket ----------
 app.get('/paket', async (req, res) => {
   const rows = await all('SELECT * FROM pakets WHERE deleted = 0 ORDER BY id');

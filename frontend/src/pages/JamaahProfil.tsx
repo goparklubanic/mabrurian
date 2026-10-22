@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react'
 import { useNavigate, useParams, Link } from 'react-router-dom'
+import { hmacFetch } from '../lib/hmac'
 
-const API_BASE = import.meta.env.VITE_API_BASE ?? 'http://localhost:3000'
 const AVATAR_URL =
   'https://static.vecteezy.com/system/resources/thumbnails/081/816/457/small/a-black-and-white-drawing-of-a-woman-wearing-a-hijab-vector.jpg'
 
@@ -27,7 +27,7 @@ export default function JamaahProfil() {
 
   async function fetchData() {
     try {
-      const res = await fetch(`${API_BASE}/jamaah/info?uuid=${uuid}`)
+      const res = await hmacFetch('GET', `/jamaah/info?uuid=${uuid}`)
       const row: Jamaah = await res.json()
       setData(row)
     } catch {
@@ -38,11 +38,7 @@ export default function JamaahProfil() {
   async function handleHapus() {
     if (!uuid || !confirm('Yakin menghapus jamaah ini?')) return
     try {
-      await fetch(`${API_BASE}/jamaah/batal`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ id: uuid }),
-      })
+      await hmacFetch('POST', '/jamaah/batal', { id: uuid })
       navigate('/jamaah')
     } catch {
       setError('Gagal menghapus jamaah')
@@ -89,7 +85,6 @@ export default function JamaahProfil() {
 
         <div className="max-w-[420px] mx-auto">
           <div className="bg-ink-2 border border-[#333] rounded-2xl overflow-hidden shadow-lg">
-            {/* Bagian atas: foto jamaah (lebar 100% card, center aligned, latar putih) */}
             <div className="relative flex flex-col items-center bg-white w-full rounded-t-2xl overflow-hidden">
               <img
                 src={AVATAR_URL}
@@ -103,7 +98,6 @@ export default function JamaahProfil() {
               <div className="absolute -bottom-10 left-1/2 -translate-x-1/2 w-16 h-16 rounded-full border-4 border-gold bg-white"></div>
             </div>
 
-            {/* Bagian tengah: data jamaah ditampilkan secara vertikal */}
             <div className="p-6 space-y-4">
               <h2 className="font-serif text-[24px] font-bold text-white">
                 {data.nama}
@@ -138,7 +132,6 @@ export default function JamaahProfil() {
               </div>
             </div>
 
-            {/* Bagian bawah: tombol update dan batal */}
             <div className="p-6 border-t border-[#2a2a2a] flex gap-3">
               <Link
                 to={`/jamaah/blanko/ganti/${uuid}`}

@@ -80,6 +80,7 @@ Konfigurasi environment ada di `backend/.env`:
 ```
 DB_PATH=./Dokumen/biroumroh.sqlite
 PORT=3000
+HMAC_SECRET=rahasia_kunci_hmac_yang_cukup_panjang_dan_acak
 ```
 
 ### 2. Frontend
@@ -160,6 +161,20 @@ npm run preview
 | `/registration/invoice/:uuid` | Halaman cetak invoice |
 | `/rombongan` | Daftar rombongan perjalanan (hanya status paid) |
 | `/serambi` | Dashboard manajemen (paket, jadwal, jamaah, pendaftaran, rombongan) |
+
+## Keamanan API (HMAC Signature)
+
+Semua endpoint API dilindungi dengan HMAC signature. Setiap permintaan dari frontend menyertakan header berikut:
+
+- `X-Hmac-Timestamp`: timestamp Unix dalam detik
+- `X-Hmac-Signature`: HMAC-SHA256 hex dari pesan `timestamp + method + path + body` menggunakan kunci rahasia server (`HMAC_SECRET`)
+- Timestamp maximal berusia 5 menit untuk mencegah replay attack
+
+Frontend menggunakan helper `src/lib/hmac.ts` untuk menandatangani setiap permintaan secara otomatis.
+
+Backend memerlukan variabel environment `HMAC_SECRET` di `backend/.env`.
+
+Frontend memerlukan variabel environment `VITE_HMAC_SECRET` di `frontend/.env` yang harus sama nilainya dengan `HMAC_SECRET` di backend.
 
 ## Skema Database (SQLite)
 

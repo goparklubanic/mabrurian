@@ -1,7 +1,6 @@
 import { useEffect, useState } from 'react'
 import { useParams, Link } from 'react-router-dom'
-
-const API_BASE = import.meta.env.VITE_API_BASE ?? 'http://localhost:3000'
+import { hmacFetch } from '../lib/hmac'
 
 type Invoice = {
   id: string
@@ -24,7 +23,7 @@ export default function Invoice() {
 
   useEffect(() => {
     if (uuid) {
-      fetch(`${API_BASE}/registration/invoice/${uuid}`)
+      hmacFetch('GET', `/registration/invoice/${uuid}`)
         .then((res) => res.json())
         .then((row: Invoice) => setData(row))
         .catch(() => setError('Gagal memuat invoice'))
@@ -59,6 +58,12 @@ export default function Invoice() {
             className="text-sm text-[#666] hover:text-gold"
           >
             &larr; Kembali ke Pendaftaran
+          </Link>
+          <Link
+            to="/serambi"
+            className="btn rounded-md border border-[#333] px-5 py-2 font-bold text-white"
+          >
+            Serambi
           </Link>
           <button
             onClick={handlePrint}

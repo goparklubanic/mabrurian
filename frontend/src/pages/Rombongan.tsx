@@ -1,7 +1,6 @@
 import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
-
-const API_BASE = import.meta.env.VITE_API_BASE ?? 'http://localhost:3000'
+import { hmacFetch } from '../lib/hmac'
 
 type Trip = {
   id: string
@@ -31,7 +30,7 @@ export default function Rombongan() {
   const [error, setError] = useState('')
 
   useEffect(() => {
-    fetch(`${API_BASE}/trip/list`)
+    hmacFetch('GET', '/trip/list')
       .then((res) => res.json())
       .then((rows: Trip[]) => setTrips(rows.filter((t) => t.status === 'waiting' && t.deleted === 0)))
       .catch(() => setError('Gagal memuat jadwal perjalanan'))
@@ -42,7 +41,7 @@ export default function Rombongan() {
       setRegs([])
       return
     }
-    fetch(`${API_BASE}/registration/list?trip_id=${selectedTripId}`)
+    hmacFetch('GET', `/registration/list?trip_id=${selectedTripId}`)
       .then((res) => res.json())
       .then((rows: Registration[]) => setRegs(rows.filter((r) => r.payment_status === 'paid')))
       .catch(() => setError('Gagal memuat data rombongan'))
@@ -76,17 +75,12 @@ export default function Rombongan() {
     }
     if (!confirm(`Yakin membatalkan ${ids.length} pendaftaran?`)) return
     try {
-      await fetch(`${API_BASE}/rombongan/batal`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ ids }),
-      })
+      await hmacFetch('POST', '/rombongan/batal', { ids })
       setChecked(new Set())
-      // Refresh list
       if (selectedTripId) {
-        fetch(`${API_BASE}/registration/list?trip_id=${selectedTripId}`)
+        hmacFetch('GET', `/registration/list?trip_id=${selectedTripId}`)
           .then((res) => res.json())
-          .then((rows: Registration[]) => setRegs(rows))
+          .then((rows: Registration[]) => setRegs(rows.filter((r) => r.payment_status === 'paid')))
       }
     } catch {
       setError('Gagal membatalkan pendaftaran')
@@ -113,7 +107,6 @@ export default function Rombongan() {
           </Link>
         </div>
 
-        {/* Dropdown filter trip waiting */}
         <div className="mb-6">
           <label className="block mb-2 text-xs font-bold text-[#bbb] uppercase">
             Filter Jadwal Perjalanan (Waiting)
@@ -132,7 +125,6 @@ export default function Rombongan() {
           </select>
         </div>
 
-        {/* Tabel data perjalanan */}
         {selectedTrip && (
           <div className="mb-8">
             <h2 className="mb-3 text-xl font-bold text-gold">Data Perjalanan</h2>
@@ -161,7 +153,6 @@ export default function Rombongan() {
           </div>
         )}
 
-        {/* Tabel data rombongan */}
         <div>
           <h2 className="mb-3 text-xl font-bold text-gold">Data Rombongan</h2>
           <div className="bg-ink-2 border border-[#333] rounded-xl p-6 overflow-x-auto">

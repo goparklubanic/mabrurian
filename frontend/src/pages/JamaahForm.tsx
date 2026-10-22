@@ -1,7 +1,6 @@
 import { useEffect, useState } from 'react'
 import { useNavigate, useParams, Link } from 'react-router-dom'
-
-const API_BASE = import.meta.env.VITE_API_BASE ?? 'http://localhost:3000'
+import { hmacFetch } from '../lib/hmac'
 
 type Form = {
   nama: string
@@ -27,7 +26,7 @@ export default function JamaahForm() {
 
   useEffect(() => {
     if (!isBaru && uuid) {
-      fetch(`${API_BASE}/jamaah/info?uuid=${uuid}`)
+      hmacFetch('GET', `/jamaah/info?uuid=${uuid}`)
         .then((res) => res.json())
         .then((row: any) => {
           setForm({
@@ -55,18 +54,10 @@ export default function JamaahForm() {
         status: form.status,
       }
       if (isBaru) {
-        await fetch(`${API_BASE}/jamaah/baru`, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(payload),
-        })
+        await hmacFetch('POST', '/jamaah/baru', payload)
         navigate('/jamaah')
       } else {
-        await fetch(`${API_BASE}/jamaah/ganti`, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ ...payload, id: uuid }),
-        })
+        await hmacFetch('POST', '/jamaah/ganti', { ...payload, id: uuid })
         navigate(`/jamaah/profil/${uuid}`)
       }
     } catch {
